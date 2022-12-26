@@ -1,0 +1,37 @@
+name: $(BuildDefinitionName).$(DayOfYear)$(Rev:.r)
+
+variables:
+  - name: isMain
+    value: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
+
+resources:
+  repositories:
+    - repository: templates
+      type: git
+      name: NoCond/nocond-pipelines
+      ref: refs/tags/1.0.17
+
+# This build makes use of our standard function pipeline
+trigger:
+  branches:
+    # We use all these branches to produce artifacts
+    include:
+      - master
+      - feature/*
+      - hotfix/*
+
+  # Content in these locations can be ignored
+  paths:
+    exclude:
+      - docs/*
+      - "*.md"
+
+stages:
+  - stage: Build
+    displayName: Build - Service
+    dependsOn: []
+    jobs:
+      - template: nodejs/nodejs-component.yml@templates
+        parameters:
+          VM_IMAGE: $(vmImage)
+          PUBLISH_NPM_PACKAGES: true
